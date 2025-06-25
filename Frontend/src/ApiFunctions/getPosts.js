@@ -1,5 +1,5 @@
 export async function getPosts() {
-  const result = await fetch('http://localhost:8080/posts')
+  const result = await fetch('http://localhost:8080/API/posts')
   .then((res) => {
     if (!res.ok) console.log('Server Error');
     return res.json();

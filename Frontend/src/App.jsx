@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Homepage from './Homepage'
-import NewPost from "./NewPost";
-import Post from "./Post"
+import Homepage from './Pages/Homepage/Homepage'
+import NewPost from "./Pages/NewPost/NewPost";
+import Post from "./Pages/Post/Post";
 
 function App() {
   return (
@@ -10,7 +10,6 @@ function App() {
         <Route path="/" element={<Homepage />} />
         <Route path="/new" element={<NewPost />} />
         <Route path="/:id" element={<Post />} />
-
       </Routes>
     </BrowserRouter>
   )

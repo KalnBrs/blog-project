@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from "react-router-dom";
-import { getPosts } from './ApiFunctions/getPosts.js'
+import { getPosts } from '../../ApiFunctions/getPosts.js'
 
 import './Homepage.css'
 
-import BlogPost from './components/blogPost/blogPost';
+import BlogPost from '../../components/blogPost/blogPost.jsx';
 
 
 function Homepage() {
@@ -29,6 +29,8 @@ function Homepage() {
       </div>
       <div className='postContainer'>
         {posts ? posts.slice(0).reverse().map((post) => {
+          return <BlogPost key={post.id} post={post} />
+        }) || posts.map((post) => {
           return <BlogPost key={post.id} post={post} />
         }) : 'Loading...'}
       </div>

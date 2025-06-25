@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { makeNewPost } from "./ApiFunctions/makeNewPost";
+import { makeNewPost } from "../../ApiFunctions/makeNewPost";
 import { useNavigate } from 'react-router-dom';
 
 import "./NewPost.css";
-import FormInput from "./components/FormInput/FormInput";
+import FormInput from "../../components/FormInput/FormInput";
 
 const App = () => {
   const navigate = useNavigate();

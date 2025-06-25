@@ -1,7 +1,8 @@
 import './Post.css'
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, Link} from 'react-router-dom';
-import { getPost } from './ApiFunctions/getPost';
+import { getPost } from '/src/ApiFunctions/getPost.js';
+
 
 function Post() {
   const [post, setPost] = useState()

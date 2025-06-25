@@ -1,6 +1,6 @@
 export async function makeNewPost(newPost) {
   try {
-    const result = await fetch('http://localhost:8080/posts', {
+    const result = await fetch('http://localhost:8080/API/posts', {
       method: "POST",
       headers: {
         "Content-Type": 'application/json'
