@@ -1,0 +1,27 @@
+#root {
+  max-width: 700px;
+  margin: 5em auto;
+  width: 50%;
+  text-align: center;
+}
+
+.header {
+  width: 100%;
+  border: grey, 2px solid;
+  padding-top: 2em;
+  padding-bottom: 2em;
+}
+
+.postContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}

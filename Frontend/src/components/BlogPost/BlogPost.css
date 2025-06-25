@@ -1,0 +1,28 @@
+.postOutline{
+  border: grey 2px solid;
+  margin-top: 2em;
+  width: 45%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.postTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.postAuthor {
+  margin-top: 0;
+}
+
+.postContent {
+  width: 80%;
+  margin: auto;
+  margin-bottom: 0.5em;
+  text-wrap: wrap;
+}
+
+.postButton {
+  margin-bottom: 1.5em;
+}
