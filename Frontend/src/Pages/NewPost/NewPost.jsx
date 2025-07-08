@@ -42,7 +42,7 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const status = await makeNewPost({ title: values['title'], author: values['author'], content: values['content'] })
-    if (status === 200) {
+    if (status === 201) {
       navigate('/')
     } else {
       console.error('Error')

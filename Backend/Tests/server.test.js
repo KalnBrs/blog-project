@@ -1,137 +1,141 @@
-const request = require('supertest')
-const app = require('../app')
+// Mock DB module
+jest.mock('../db', () => ({
+  query: jest.fn()
+}));
 
-jest.mock('fs')
-const { readFile, readFileSync, writeFile } = require('fs')
+const pool = require('../db');
+const { getPosts, createPost, findId } = require('../Controllers/postsControllers');
 
-describe('GET /API/posts', () => {
-  it('should return posts from your file', async () => {
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(null, JSON.stringify([{ id: 0, title: 'Title', author: 'Author', content: 'content'}])) // No error send json string
-    })
+const httpMocks = require('node-mocks-http');
 
-    const res = await request(app).get('/API/posts')
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual([{ id: 0, title: 'Title', author: 'Author', content: 'content'}])
-  });
+describe('getPosts', () => {
+  it('should return all posts', async () => {
+    const mockPosts = [{ title: 'Post 1' }, { title: 'Post 2' }];
+    pool.query.mockResolvedValueOnce({ rows: mockPosts });
 
-  it('should return 500 if reading file fails', async () => {
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(new Error('fail'), null);
-    })
-    
-    const res = await request(app).get('/API/posts')
-    expect(res.statusCode).toBe(500)
-  })
-})
+    const req = httpMocks.createRequest();
+    const res = httpMocks.createResponse();
 
-describe('POST /API/posts', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should create a new post successfully', async () => {
-    // Mock readFile to return existing posts array
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(null, JSON.stringify([]));
-    });
-
-    // Mock readFileSync to return last ID as '0'
-    readFileSync.mockReturnValue('0');
-
-    // Mock writeFile to simulate successful write
-    writeFile.mockImplementation((path, data, callback) => {
-      callback(null);
-    });
-
-    const newPost = { title: 'Test Title', author: 'Tester', content: 'Test content' };
-
-    const res = await request(app)
-      .post('/API/posts')
-      .send(newPost)
-      .set('Accept', 'application/json');
+    await getPosts(req, res);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ message: 'Sucesfully Wrote to file' });
-
-    expect(readFile).toHaveBeenCalled();
-    expect(readFileSync).toHaveBeenCalled();
-    expect(writeFile).toHaveBeenCalledTimes(2); // writing posts and writing id
+    expect(res._getJSONData()).toEqual(mockPosts);
+    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM posts');
   });
 
-  it('should return 400 if missing required fields', async () => {
-    const incompletePost = { title: 'Title', author: 'Author' }; // missing content
+  it('should return 500 on DB error', async () => {
+    pool.query.mockRejectedValueOnce(new Error('DB error'));
 
-    const res = await request(app)
-      .post('/API/posts')
-      .send(incompletePost)
-      .set('Accept', 'application/json');
+    const req = httpMocks.createRequest();
+    const res = httpMocks.createResponse();
+
+    await getPosts(req, res);
+
+    expect(res.statusCode).toBe(500);
+    expect(res._getJSONData()).toEqual({ message: 'Server Error' });
+  });
+});
+
+describe('createPost', () => {
+  it('should create and return a post', async () => {
+    const req = httpMocks.createRequest({
+      method: 'POST',
+      body: {
+        title: 'New Post',
+        author: 'Kaelan',
+        content: 'Cool content'
+      }
+    });
+    const res = httpMocks.createResponse();
+
+    const mockReturn = {
+      rows: [{
+        post_uid: 'uuid-123',
+        title: 'New Post',
+        author: 'Kaelan',
+        content: 'Cool content'
+      }]
+    };
+
+    pool.query.mockResolvedValueOnce(mockReturn);
+
+    await createPost(req, res);
+
+    expect(res.statusCode).toBe(201);
+    expect(res._getJSONData()).toEqual(mockReturn.rows[0]);
+    expect(pool.query).toHaveBeenCalledWith(
+      ' INSERT INTO posts (post_uid, title, author, content) VALUES (uuid_generate_v4(), $1, $2, $3) RETURNING *',
+      ['New Post', 'Kaelan', 'Cool content']
+    );
+  });
+
+  it('should return 400 if fields are missing', async () => {
+    const req = httpMocks.createRequest({
+      method: 'POST',
+      body: {
+        title: 'Missing Content'
+      }
+    });
+    const res = httpMocks.createResponse();
+
+    await createPost(req, res);
 
     expect(res.statusCode).toBe(400);
-    expect(res.body).toEqual({ message: 'Missing fields' });
+    expect(res._getJSONData()).toEqual({ message: 'Missing fields' });
   });
 
-  it('should return 500 if reading posts file fails', async () => {
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(new Error('read error'), null);
+  it('should return 500 on DB error', async () => {
+    const req = httpMocks.createRequest({
+      method: 'POST',
+      body: {
+        title: 'Error Post',
+        author: 'Kaelan',
+        content: 'Problem'
+      }
     });
+    const res = httpMocks.createResponse();
 
-    const newPost = { title: 'Title', author: 'Author', content: 'Content' };
+    pool.query.mockRejectedValueOnce(new Error('DB error'));
 
-    const res = await request(app)
-      .post('/API/posts')
-      .send(newPost)
-      .set('Accept', 'application/json');
+    await createPost(req, res);
 
     expect(res.statusCode).toBe(500);
-    expect(res.body).toEqual({ message: 'Server Error' });
+    expect(res._getJSONData()).toEqual({ message: 'Server Error' });
+  });
+});
+
+describe('findId', () => {
+  it('should respond with found post', async () => {
+    const req = httpMocks.createRequest();
+    const res = httpMocks.createResponse();
+    const next = jest.fn();
+
+    pool.query.mockResolvedValueOnce({
+      rows: [{ post_uid: 'uuid', title: 'Hello' }]
+    });
+
+    await findId(req, res, next, 'uuid');
+
+    expect(res.statusCode).toBe(202);
+    expect(res._getJSONData()).toEqual({ post_uid: 'uuid', title: 'Hello' });
+    expect(pool.query).toHaveBeenCalledWith(
+      'SELECT * FROM posts WHERE post_uid = $1',
+      ['uuid']
+    );
+    expect(next).toHaveBeenCalled();
   });
 
-  it('should return 500 if writing posts file fails', async () => {
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(null, JSON.stringify([]));
-    });
+  it('should return 500 on DB error', async () => {
+    const req = httpMocks.createRequest();
+    const res = httpMocks.createResponse();
+    const next = jest.fn();
 
-    readFileSync.mockReturnValue('0');
+    pool.query.mockRejectedValueOnce(new Error('fail'));
 
-    writeFile.mockImplementationOnce((path, data, callback) => {
-      callback(new Error('write error'));
-    });
-
-    const newPost = { title: 'Title', author: 'Author', content: 'Content' };
-
-    const res = await request(app)
-      .post('/API/posts')
-      .send(newPost)
-      .set('Accept', 'application/json');
+    await findId(req, res, next, 'uuid');
 
     expect(res.statusCode).toBe(500);
-    expect(res.body).toEqual({ message: 'Failed to update file'});
-  });
-
-  it('should return 500 if writing ID file fails', async () => {
-    readFile.mockImplementation((path, encoding, callback) => {
-      callback(null, JSON.stringify([]));
-    });
-
-    readFileSync.mockReturnValue('0');
-
-    writeFile
-      .mockImplementationOnce((path, data, callback) => {
-        callback(null); // first writeFile succeeds (posts)
-      })
-      .mockImplementationOnce((path, data, callback) => {
-        callback(new Error('write id error')); // second writeFile fails (id)
-      });
-
-    const newPost = { title: 'Title', author: 'Author', content: 'Content' };
-
-    const res = await request(app)
-      .post('/API/posts')
-      .send(newPost)
-      .set('Accept', 'application/json');
-
-    expect(res.statusCode).toBe(500);
-    expect(res.body).toEqual({ message: 'Failed to update id'});
+    expect(res._getJSONData()).toEqual({ message: 'Server Error' });
+    expect(next).not.toHaveBeenCalled(); // stops on error
   });
 });

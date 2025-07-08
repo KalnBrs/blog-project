@@ -13,6 +13,5 @@ router.route('/:id')
   .get((req, res) => {
     res.status(200).json(req.post)
   })
-
-
+  
 module.exports = router;
