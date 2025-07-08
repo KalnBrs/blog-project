@@ -15,10 +15,10 @@ This is a ** Blog Post Website ** built in order to learn and hone my full stack
   ```
 2. Install Dependencies:
 ```bash
- cd Frontend
- npm install
- cd ../Backend
- npm install
+cd Frontend
+npm install
+cd ../Backend
+npm install
 ```
 
 ## Contributions
