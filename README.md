@@ -14,12 +14,12 @@ This is a ** Blog Post Website ** built in order to learn and hone my full stack
   cd blog-project
   ```
 2. Install Dependencies:
-   ```bash
-   cd Frontend
-   npm install
-   cd ../Backend
-   npm install
-   ```
+```bash
+ cd Frontend
+ npm install
+ cd ../Backend
+ npm install
+```
 
 ## Contributions
 Feel free to contribute by opening an issue or submitting a pull request!
