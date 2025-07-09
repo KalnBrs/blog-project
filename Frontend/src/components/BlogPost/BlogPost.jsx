@@ -17,7 +17,7 @@ function  BlogPost({ post }) {
       <p className='postTitle'>{title}</p>
       <p className='postAuthor'>By: {author}</p>
       <p className='postContent'>{content}</p>
-      <Link to={`/${post.id}`}> <button className='postButton'>Read More</button> </Link>
+      <Link to={`/${post.post_uid}`}> <button className='postButton'>Read More</button> </Link>
     </div>
   )
 }

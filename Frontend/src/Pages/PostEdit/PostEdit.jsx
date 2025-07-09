@@ -1,18 +1,32 @@
-import { useState } from "react";
-import { makeNewPost } from "../../ApiFunctions/makeNewPost";
-import { useNavigate } from 'react-router-dom';
+import './PostEdit.css'
+import { getPost } from '../../ApiFunctions/getPost'
+import { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 
-import "./NewPost.css";
-import FormInput from "../../components/FormInput/FormInput";
+import FormInput from '../../components/FormInput/FormInput';
+import { updatePost } from '../../ApiFunctions/updatePost';
 
-function App() {
-  const navigate = useNavigate();
-
+function PostEdit() {
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const [post, setPost] = useState({})
   const [values, setValues] = useState({
     title: '',
     author: '',
     content: ''
   });
+
+  const location = useLocation()
+
+  useEffect(() => {
+    async function init() {
+      const fetchedPost = await getPost(id);
+      setPost(fetchedPost)
+      setValues({ title: fetchedPost.title, author: fetchedPost.author, content: fetchedPost.content })
+    }
+    
+    init()
+  }, [location.search])
 
   const inputs = [
     {
@@ -41,9 +55,9 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const status = await makeNewPost({ title: values['title'], author: values['author'], content: values['content'] })
-    if (status === 201) {
-      navigate('/')
+    const status = await updatePost({ post_uid: post.post_uid, title: values['title'], author: values['author'], content: values['content'] })
+    if (status === 203) {
+      navigate(`/${post.post_uid}`)
     } else {
       console.error('Error')
     }
@@ -56,7 +70,7 @@ function App() {
   return (
     <div className="app">
       <form onSubmit={handleSubmit} className="formForm">
-        <h1 className="formH1">New Post</h1>
+        <h1 className="formH1">Edit Post</h1>
         {inputs.map((input) => (
           <FormInput
             key={input.id}
@@ -73,7 +87,7 @@ function App() {
         <button className="formButton">Submit</button>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default App;
+export default PostEdit;
