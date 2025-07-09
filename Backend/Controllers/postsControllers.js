@@ -28,7 +28,12 @@ const createPost = async (req, res) => {
 const findId = async (req, res, next, value) => {
   try {
     const result = await pool.query('SELECT * FROM posts WHERE post_uid = $1', [value])
-    res.status(202).json(result.rows[0])
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    req.post = result.rows[0];
     next()
   } catch (err) {
     console.error(err.message);

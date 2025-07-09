@@ -29,9 +29,9 @@ function Homepage() {
       </div>
       <div className='postContainer'>
         {posts ? posts.slice(0).reverse().map((post) => {
-          return <BlogPost key={post.id} post={post} />
+          return <BlogPost key={post.post_uid} post={post} />
         }) || posts.map((post) => {
-          return <BlogPost key={post.id} post={post} />
+          return <BlogPost key={post.post_uid} post={post} />
         }) : 'Loading...'}
       </div>
     </>
